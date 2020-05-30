@@ -1,5 +1,7 @@
 package sample;
 
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -94,6 +96,7 @@ public class Controller implements Initializable {
                 timeSlider.setMax(player.getMedia().getDuration().toMinutes());
 //                System.out.println(player.getMedia().getDuration().toSeconds());
                 timeSlider.setValue(0);
+                player.setMute(false);
 
                 try {
                     btnPlay.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/play.jpg"))));
@@ -122,6 +125,14 @@ public class Controller implements Initializable {
                         double value = timeSlider.getValue();
                         player.seek(new Duration(value *60* 1000));
                     }
+                }
+            });
+            // slider volume
+            audioSlider.setValue(player.getVolume()*100);
+            audioSlider.valueProperty().addListener(new InvalidationListener() {
+                @Override
+                public void invalidated(Observable observable) {
+                    player.setVolume(audioSlider.getValue()/100);
                 }
             });
 
@@ -178,6 +189,13 @@ public class Controller implements Initializable {
     @FXML
     void audioClick(ActionEvent event) {
         try {
+            if(player.isMute()){
+                player.setMute(false);
+                btnAudio.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/audio.png"))));
+            }else {
+                player.setMute(true);
+                btnAudio.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/unaudio.png"))));
+            }
 
         }catch (Exception e){
             e.printStackTrace();

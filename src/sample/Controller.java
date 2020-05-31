@@ -7,28 +7,27 @@ import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.Slider;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.URL;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
     MediaPlayer player;
-
-    @FXML
-    private MediaView mediaView;
 
     @FXML
     private Slider timeSlider;
@@ -73,21 +72,33 @@ public class Controller implements Initializable {
     private MenuItem miExit;
 
     @FXML
-    public void openFile(ActionEvent event) {
+    private MenuItem miSpeed;
+
+    @FXML
+    private MenuItem miAbout;
+
+    @FXML
+    private MediaView mediaView;
+
+    @FXML
+    public void openFile(ActionEvent event) throws FileNotFoundException {
+        if (player != null) {
+            btnPlay.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/play.jpg"))));
+            player.pause();
+            player.dispose();
+        }
         try {
             System.out.println("open file");
             FileChooser chooser = new FileChooser();
             File file = chooser.showOpenDialog(null);
 
             Media media = new Media(file.toURI().toURL().toString());
-
-            if (player!=null){
-                player.dispose();
-            }
-
             player = new MediaPlayer(media);
-
             mediaView.setMediaPlayer(player);
+
+            //Set mặc định khi open file sẽ play mucsic
+            player.play();
+            btnPlay.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/pause.jpg"))));
 
             //time slider (set time hiển thị thời gian trên thanh slider)
             player.setOnReady(() -> {
@@ -97,12 +108,6 @@ public class Controller implements Initializable {
 //                System.out.println(player.getMedia().getDuration().toSeconds());
                 timeSlider.setValue(0);
                 player.setMute(false);
-
-                try {
-                    btnPlay.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/play.jpg"))));
-                } catch (FileNotFoundException fileNotFoundException) {
-                    fileNotFoundException.printStackTrace();
-                }
 
             });
 
@@ -212,11 +217,78 @@ public class Controller implements Initializable {
 
     }
 
+    //set action cho note stop button
     @FXML
     void stopClick(ActionEvent event) {
+        try {
+            player.seek(Duration.ZERO);
+            player.pause();
+            btnPlay.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/play.jpg"))));
 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
+    //set action cho note exit trong menu button
+    @FXML
+    void exitClick(ActionEvent event) {
+        try {
+            Alert alertExit = new Alert(Alert.AlertType.CONFIRMATION);
+            alertExit.setTitle("Confirmation");
+            alertExit.setHeaderText("Do you want to close ?");
+
+            //Tạo 2 buttonType con lựa chon khi Alert
+            ButtonType buttonTypeYes = new ButtonType("Yes", ButtonBar.ButtonData.YES);
+            ButtonType buttonTypeNo = new ButtonType("No", ButtonBar.ButtonData.NO);
+
+            alertExit.getButtonTypes().setAll(buttonTypeYes, buttonTypeNo);
+            Optional<ButtonType> result = alertExit.showAndWait();
+
+            if (result.get() == buttonTypeYes) {
+                System.exit(0);
+            } else {
+                player.stop();
+                btnPlay.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/play.jpg"))));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    void aboutClick(ActionEvent event) {
+        try {
+            Stage window = new Stage();
+            StackPane layout = new StackPane();
+
+            //click about player sẽ dừng phát nhạc và chuyển icon về play
+            player.pause();
+            btnPlay.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/play.jpg"))));
+
+            File fileLogo = new File("src/icons/logo.png");
+            File fileAboutMp3 = new File("src/icons/codegyminfo1.png");
+            Image imageAboutMp3 = new Image(fileAboutMp3.toURI().toString());
+
+            //set Background image cho about info StackPane
+            layout.setBackground(new Background(new BackgroundImage(imageAboutMp3, BackgroundRepeat.NO_REPEAT,BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER,BackgroundSize.DEFAULT)));
+            Scene scene = new Scene(layout, 450, 346);
+
+            window.setTitle("About Mp3 Player");
+            //set icon cho StackPane (layout)
+            window.getIcons().add(new Image(fileLogo.toURI().toString()));
+            window.setScene(scene);
+            window.show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    void speedClick(ActionEvent event) {
+    }
 
     //Gán icon cho các button
     @Override
@@ -234,6 +306,7 @@ public class Controller implements Initializable {
             miOpen.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/openfile.png"))));
             miSave.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/save.png"))));
             miExit.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/exit.png"))));
+            miAbout.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/about.png"))));
 
         } catch (FileNotFoundException fileNotFoundException) {
             fileNotFoundException.printStackTrace();

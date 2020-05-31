@@ -48,19 +48,20 @@
               <menus>
                 <Menu mnemonicParsing="false" text="File">
                   <items>
-                    <MenuItem fx:id="miOpen" mnemonicParsing="false" onAction="#openFile" text="Open" />
+                        <MenuItem fx:id="miOpen" mnemonicParsing="false" onAction="#openFile" text="Open" />
                         <MenuItem fx:id="miSave" mnemonicParsing="false" text="Save" />
-                        <MenuItem fx:id="miExit" mnemonicParsing="false" text="Exit" />
+                        <MenuItem fx:id="miExit" mnemonicParsing="false" onAction="#exitClick" text="Exit" />
                   </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Tools">
                   <items>
-                    <MenuItem mnemonicParsing="false" text="Delete" />
+                        <MenuItem fx:id="miSpeed" mnemonicParsing="false" onAction="#speedClick" text="Set speed!" />
+                        <MenuItem fx:id="miBackground" mnemonicParsing="false" text="Change Background" />
                   </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Help">
                   <items>
-                    <MenuItem mnemonicParsing="false" text="About" />
+                        <MenuItem fx:id="miAbout" mnemonicParsing="false" onAction="#aboutClick" text="About" />
                   </items>
                 </Menu>
               </menus>

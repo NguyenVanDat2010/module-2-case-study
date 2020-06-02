@@ -45,6 +45,15 @@ public class Controller implements Initializable {
     private Label lbTimeSliderSeconds;
 
     @FXML
+    private Label lbTimeSliderMaxHours;
+
+    @FXML
+    private Label lbTimeSliderMaxMinutes;
+
+    @FXML
+    private Label lbTimeSliderMaxSeconds;
+
+    @FXML
     private Button btnShuffle;
 
     @FXML
@@ -82,9 +91,6 @@ public class Controller implements Initializable {
 
     @FXML
     private MenuItem miExit;
-
-    @FXML
-    private Menu miSpeed;
 
     @FXML
     private RadioButton rbSlowSpeed;
@@ -151,6 +157,27 @@ public class Controller implements Initializable {
                 public void changed(ObservableValue<? extends Duration> observable, Duration oldValue, Duration newValue) {
                     Duration dur = player.getCurrentTime();
                     timeSlider.setValue(dur.toSeconds());
+
+                    //Set thời gian chạy của nhạc
+                    int value = (int) timeSlider.getValue();
+                    int hours = value / 3600;
+                    int minutes = (value - (hours * 3600)) / 60;
+                    int seconds = value - (hours * 3600) - (minutes * 60);
+
+//                    System.out.println(value);
+                    lbTimeSliderSeconds.setText(numberPad(String.valueOf(seconds), 2));
+                    lbTimeSliderMinutes.setText(numberPad(String.valueOf(minutes), 2));
+                    lbTimeSliderHours.setText(numberPad(String.valueOf(hours), 2));
+
+                    int maxValue = (int) timeSlider.getMax();
+                    int maxHours = maxValue / 3600;
+                    int maxMinutes = (maxValue - (maxHours * 3600)) / 60;
+                    int maxSeconds = maxValue - (maxHours * 3600) - (maxMinutes * 60);
+
+//                    System.out.println(maxValue);
+                    lbTimeSliderMaxSeconds.setText(numberPad(String.valueOf(maxSeconds), 2));
+                    lbTimeSliderMaxMinutes.setText(numberPad(String.valueOf(maxMinutes), 2));
+                    lbTimeSliderMaxHours.setText(numberPad(String.valueOf(maxHours), 2));
                 }
             });
 
@@ -179,6 +206,14 @@ public class Controller implements Initializable {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**Set length = 2 (vd: 01) cho tham số giây, phút và giờ nếu length=1*/
+    public static String numberPad(String number, int length) {
+        while(number.length() < length) {
+            number = "0" + number;
+        }
+        return number;
     }
 
     /**
@@ -267,13 +302,14 @@ public class Controller implements Initializable {
     void repeatClick(ActionEvent event) {
         try {
             if (checkRepeat){
-                btnRepeat.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
+                btnRepeat.setBackground(new Background(new BackgroundFill(Color.ORANGE, CornerRadii.EMPTY, Insets.EMPTY)));
                 player.setCycleCount(MediaPlayer.INDEFINITE);
                 checkRepeat = !checkRepeat;
                 System.out.println("Repeat is on");
             }else
             {
-                btnRepeat.setBackground(new Background(new BackgroundFill(null, CornerRadii.EMPTY, Insets.EMPTY)));
+                btnRepeat.setBackground(new Background(new BackgroundFill(Color.rgb(216,216,216), CornerRadii.EMPTY, Insets.EMPTY)));
+//                btnRepeat.setBackground(null);
                 player.setCycleCount(1);
                 checkRepeat =!checkRepeat;
                 System.out.println("Repeat is off");

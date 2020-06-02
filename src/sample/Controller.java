@@ -262,6 +262,7 @@ public class Controller implements Initializable {
     /**
      * set sự kiện click cho nút button repeat, lặp lại 1 bài hát đang playing
      */
+
     private boolean checkRepeat = true;
     @FXML
     void repeatClick(ActionEvent event) {

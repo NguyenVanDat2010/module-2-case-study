@@ -53,6 +53,15 @@ public class Controller implements Initializable {
     private Label lbTimeSliderSeconds;
 
     @FXML
+    private Label lbTimeSliderMaxHours;
+
+    @FXML
+    private Label lbTimeSliderMaxMinutes;
+
+    @FXML
+    private Label lbTimeSliderMaxSeconds;
+
+    @FXML
     private Button btnShuffle;
 
     @FXML
@@ -92,9 +101,6 @@ public class Controller implements Initializable {
     private MenuItem miExit;
 
     @FXML
-    private Menu miSpeed;
-
-    @FXML
     private RadioButton rbSlowSpeed;
 
     @FXML
@@ -128,10 +134,9 @@ public class Controller implements Initializable {
                 configureTable();
                 configureSlideBar();
 
-                /**time slider and volume slider (set time hiển thị thời gian trên thanh slider
-                 * và slider volume to nhỏ âm thanh)*/
             }
-
+            //set setSelected cho radio button normal
+            rbNormalSpeed.setSelected(true);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -139,18 +144,25 @@ public class Controller implements Initializable {
     }
 
     public void openDir(ActionEvent event) throws FileNotFoundException {
-       //open dialog with filter
+        //open dialog with filter
         DirectoryChooser directoryChooser = new DirectoryChooser();
-        File dir =directoryChooser.showDialog(new Stage());
+        File dir = directoryChooser.showDialog(new Stage());
         mp3Player.getMp3Collection().clear();
         mp3Player.getMp3Collection().addSongs(mp3Parser.createMp3Songs(dir));
         mp3Player.loadSong(0);
         configureSlideBar();
         configureTable();
-       //select folder
-       //save files to a new folder (async)
-       //display on tableview
+        //select folder
+        //save files to a new folder (async)
+        //display on tableview
+    }
 
+    /**Set length = 2 (vd: 01) cho tham số giây, phút và giờ nếu length=1*/
+    public static String numberPad(String number, int length) {
+        while(number.length() < length) {
+            number = "0" + number;
+        }
+        return number;
     }
 
     /**
@@ -242,11 +254,14 @@ public class Controller implements Initializable {
             if (checkRepeat){
                 btnRepeat.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
                 mp3Player.getMediaPlayer().setCycleCount(MediaPlayer.INDEFINITE);
+
                 checkRepeat = !checkRepeat;
                 System.out.println("Repeat is on");
             }else
             {
-                btnRepeat.setBackground(new Background(new BackgroundFill(null, CornerRadii.EMPTY, Insets.EMPTY)));
+
+                btnRepeat.setBackground(new Background(new BackgroundFill(Color.rgb(216,216,216), CornerRadii.EMPTY, Insets.EMPTY)));
+//                btnRepeat.setBackground(null);
                 mp3Player.getMediaPlayer().setCycleCount(1);
                 checkRepeat =!checkRepeat;
                 System.out.println("Repeat is off");

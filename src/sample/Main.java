@@ -22,7 +22,7 @@ public class Main extends Application {
         primaryStage.setTitle("Mp3 Player");
         primaryStage.getIcons().add(image);
 
-        primaryStage.setScene(new Scene(root, 850, 510));
+        primaryStage.setScene(new Scene(root, 850, 530));
         primaryStage.show();
     }
 

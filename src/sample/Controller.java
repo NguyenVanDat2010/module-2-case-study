@@ -260,9 +260,18 @@ public class Controller implements Initializable {
     /**
      * set sự kiện click cho nút button repeat, lặp lại 1 bài hát đang playing
      */
+    private boolean checkRepeat =false;
     @FXML
-    void repeatClick(ActionEvent event) {
-
+    void repeatClick(ActionEvent event) throws FileNotFoundException {
+        if (checkRepeat){
+            btnRepeat.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/repeat.png"))));
+            player.setCycleCount(MediaPlayer.INDEFINITE);
+            checkRepeat = !checkRepeat;
+        }else {
+            btnRepeat.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/unRepeat.png"))));
+            player.setCycleCount(1);
+            checkRepeat = !checkRepeat;
+        }
     }
 
     /**

@@ -2,6 +2,9 @@ package sample;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -20,6 +23,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Duration;
+import song.Mp3Collection;
 import song.Mp3Parser;
 import song.Mp3Player;
 import song.Mp3Song;
@@ -33,10 +37,12 @@ import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
     private boolean checkRepeat = true;
-    private int backgroundValue =1;
+    private int backgroundValue = 1;
+    Mp3Collection mp3Collection = new Mp3Collection();
 
     Mp3Player mp3Player;
     Mp3Parser mp3Parser;
+    Mp3Song mp3Song;
 
 
     @FXML
@@ -124,7 +130,10 @@ public class Controller implements Initializable {
     private ImageView imageView;
 
     @FXML
-    public void openFile(ActionEvent event) throws FileNotFoundException {
+    private TextField txtSearch;
+
+    @FXML
+    public void openFile(ActionEvent event) {
         try {
             FileChooser fc = new FileChooser();
             fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Mp3", "*mp3"));
@@ -133,40 +142,59 @@ public class Controller implements Initializable {
                 mp3Player.getMp3Collection().clear();
                 mp3Player.getMp3Collection().addSong(mp3Parser.createMp3Song(file));
                 mp3Player.loadSong(0);
+                changSpeed();
                 configureTable();
                 configureSlideBar();
-
             }
             //set setSelected cho radio button normal
-            rbNormalSpeed.setSelected(true);
+
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void openDir(ActionEvent event) throws FileNotFoundException {
+    public void openDir(ActionEvent event) {
         //open dialog with filter
+
         DirectoryChooser directoryChooser = new DirectoryChooser();
         File dir = directoryChooser.showDialog(new Stage());
         mp3Player.getMp3Collection().clear();
         mp3Player.getMp3Collection().addSongs(mp3Parser.createMp3Songs(dir));
         mp3Player.loadSong(0);
+        changSpeed();
         configureSlideBar();
         configureTable();
-        rbNormalSpeed.setSelected(true);
         //select folder
         //save files to a new folder (async)
         //display on tableview
 
     }
 
-    /**Set length = 2 (vd: 01) cho tham số giây, phút và giờ nếu length=1*/
+    /**
+     * Set length = 2 (vd: 01) cho tham số giây, phút và giờ nếu length=1
+     */
     public static String numberPad(String number, int length) {
-        while(number.length() < length) {
+        while (number.length() < length) {
             number = "0" + number;
         }
         return number;
+    }
+
+    void changSpeed() {
+        if (rbSlowSpeed.isSelected()) {
+            rbNormalSpeed.setSelected(false);
+            rbFastSpeed.setSelected(false);
+            mp3Player.getMediaPlayer().setRate(0.5);
+        } else if (rbNormalSpeed.isSelected()) {
+            rbSlowSpeed.setSelected(false);
+            rbFastSpeed.setSelected(false);
+            mp3Player.getMediaPlayer().setRate(1);
+        } else if (rbFastSpeed.isSelected()) {
+            rbSlowSpeed.setSelected(false);
+            rbNormalSpeed.setSelected(false);
+            mp3Player.getMediaPlayer().setRate(1.5);
+        }
     }
 
     /**
@@ -192,16 +220,33 @@ public class Controller implements Initializable {
         }
     }
 
+    void nextSong() {
+        if (tableView.getSelectionModel().getSelectedIndex() < mp3Player.getMp3Collection().getSongList().size()) {
+            tableView.getSelectionModel().select(tableView.getSelectionModel().getSelectedIndex() + 1);
+            mp3Player.loadSong(tableView.getSelectionModel().getSelectedIndex());
+            changSpeed();
+            configureSlideBar();
+            btnPlay.fire();
+        }
+    }
+
+    void prevSong() {
+        if (tableView.getSelectionModel().getSelectedIndex() > 0) {
+            tableView.getSelectionModel().select(tableView.getSelectionModel().getSelectedIndex() - 1);
+            mp3Player.loadSong(tableView.getSelectionModel().getSelectedIndex());
+            changSpeed();
+            configureSlideBar();
+            btnPlay.fire();
+        }
+    }
+
+
     /**
      * set sự kiện click cho nút button previous lùi bài hát về trước
      */
     @FXML
     void prevClick(ActionEvent event) {
-        if (tableView.getSelectionModel().getSelectedIndex() > 0) {
-            tableView.getSelectionModel().select(tableView.getSelectionModel().getSelectedIndex() - 1);
-            mp3Player.loadSong(tableView.getSelectionModel().getSelectedIndex());
-            btnPlay.fire();
-        }
+        prevSong();
     }
 
     /**
@@ -209,11 +254,7 @@ public class Controller implements Initializable {
      */
     @FXML
     void nextClick(ActionEvent event) {
-        if (tableView.getSelectionModel().getSelectedIndex() < mp3Player.getMp3Collection().getSongList().size()) {
-            tableView.getSelectionModel().select(tableView.getSelectionModel().getSelectedIndex() + 1);
-            mp3Player.loadSong(tableView.getSelectionModel().getSelectedIndex());
-            btnPlay.fire();
-        }
+        nextSong();
     }
 
     /**
@@ -242,15 +283,15 @@ public class Controller implements Initializable {
     @FXML
     void audioClick(ActionEvent event) {
         try {
-            if(mp3Player.getMediaPlayer().isMute()){
+            if (mp3Player.getMediaPlayer().isMute()) {
                 mp3Player.getMediaPlayer().setMute(false);
                 btnAudio.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/audio.png"))));
-            }else {
+            } else {
                 mp3Player.getMediaPlayer().setMute(true);
                 btnAudio.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/unaudio.png"))));
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -261,22 +302,21 @@ public class Controller implements Initializable {
     @FXML
     void repeatClick(ActionEvent event) {
         try {
-            if (checkRepeat){
+            if (checkRepeat) {
                 btnRepeat.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
                 mp3Player.getMediaPlayer().setCycleCount(MediaPlayer.INDEFINITE);
 
                 checkRepeat = !checkRepeat;
                 System.out.println("Repeat is on");
-            }else
-            {
+            } else {
 
-                btnRepeat.setBackground(new Background(new BackgroundFill(Color.rgb(216,216,216), CornerRadii.EMPTY, Insets.EMPTY)));
+                btnRepeat.setBackground(new Background(new BackgroundFill(Color.rgb(216, 216, 216), CornerRadii.EMPTY, Insets.EMPTY)));
 //                btnRepeat.setBackground(null);
                 mp3Player.getMediaPlayer().setCycleCount(1);
-                checkRepeat =!checkRepeat;
+                checkRepeat = !checkRepeat;
                 System.out.println("Repeat is off");
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -344,7 +384,7 @@ public class Controller implements Initializable {
             Image imageAboutMp3 = new Image(fileAboutMp3.toURI().toString());
 
             //set Background image cho about info StackPane
-            layout.setBackground(new Background(new BackgroundImage(imageAboutMp3, BackgroundRepeat.NO_REPEAT,BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER,BackgroundSize.DEFAULT)));
+            layout.setBackground(new Background(new BackgroundImage(imageAboutMp3, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, BackgroundSize.DEFAULT)));
             Scene scene = new Scene(layout, 450, 346);
 
             window.setTitle("About Mp3 Player");
@@ -360,7 +400,7 @@ public class Controller implements Initializable {
 
     @FXML
     void slowSpeedClick(ActionEvent event) {
-        if (rbSlowSpeed.isSelected()){
+        if (rbSlowSpeed.isSelected()) {
             rbNormalSpeed.setSelected(false);
             rbFastSpeed.setSelected(false);
             mp3Player.getMediaPlayer().setRate(0.5);
@@ -369,7 +409,7 @@ public class Controller implements Initializable {
 
     @FXML
     void normalSpeedClick(ActionEvent event) {
-        if (rbNormalSpeed.isSelected()){
+        if (rbNormalSpeed.isSelected()) {
             rbSlowSpeed.setSelected(false);
             rbFastSpeed.setSelected(false);
             mp3Player.getMediaPlayer().setRate(1);
@@ -378,7 +418,7 @@ public class Controller implements Initializable {
 
     @FXML
     void fastSpeedClick(ActionEvent event) {
-        if (rbFastSpeed.isSelected()){
+        if (rbFastSpeed.isSelected()) {
             rbSlowSpeed.setSelected(false);
             rbNormalSpeed.setSelected(false);
             mp3Player.getMediaPlayer().setRate(1.5);
@@ -414,7 +454,7 @@ public class Controller implements Initializable {
                 int minutes = (value - (hours * 3600)) / 60;
                 int seconds = value - (hours * 3600) - (minutes * 60);
 
-                //                    System.out.println(value);
+//                System.out.println(value);
                 lbTimeSliderSeconds.setText(numberPad(String.valueOf(seconds), 2));
                 lbTimeSliderMinutes.setText(numberPad(String.valueOf(minutes), 2));
                 lbTimeSliderHours.setText(numberPad(String.valueOf(hours), 2));
@@ -424,10 +464,14 @@ public class Controller implements Initializable {
                 int maxMinutes = (maxValue - (maxHours * 3600)) / 60;
                 int maxSeconds = maxValue - (maxHours * 3600) - (maxMinutes * 60);
 
-                //                    System.out.println(maxValue);
+//                System.out.println(maxValue);
                 lbTimeSliderMaxSeconds.setText(numberPad(String.valueOf(maxSeconds), 2));
                 lbTimeSliderMaxMinutes.setText(numberPad(String.valueOf(maxMinutes), 2));
                 lbTimeSliderMaxHours.setText(numberPad(String.valueOf(maxHours), 2));
+
+                if (value == maxValue) {
+                    nextSong();
+                }
             }
         });
 
@@ -450,6 +494,7 @@ public class Controller implements Initializable {
         });
 
     }
+
     void configureTable() {
         tableView.setItems(mp3Player.getMp3Collection().getSongList());
         tableView.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
@@ -468,6 +513,7 @@ public class Controller implements Initializable {
         });
         tableView.getSelectionModel().select(0);
     }
+
     void drawTable() {
         TableColumn<Mp3Song, String> titleColumn = new TableColumn<Mp3Song, String>("Title");
         titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
@@ -483,7 +529,9 @@ public class Controller implements Initializable {
         tableView.getColumns().add(albumColumn);
     }
 
-    /**get chuỗi cho background */
+    /**
+     * get chuỗi cho background
+     */
     public Image getBackgroundStr(int value) {
         String a = "src/icons/background".concat(String.valueOf(value));
         String b = a.concat(".jpg");
@@ -492,7 +540,9 @@ public class Controller implements Initializable {
         return image;
     }
 
-    /**Thay đổi background cho image view */
+    /**
+     * Thay đổi background cho image view
+     */
     @FXML
     void miChangeBackground(ActionEvent event) {
         if (backgroundValue == 1) {
@@ -508,6 +558,36 @@ public class Controller implements Initializable {
             imageView.setImage(getBackgroundStr(backgroundValue));
             backgroundValue = 1;
         }
+    }
+
+
+    /**
+     * Search bai hat theo tên (chưa finish)
+     */
+    void searchValueInput() {
+        FilteredList<Mp3Song> listSong = new FilteredList<>(mp3Collection.getSongList(), b -> true);
+
+        txtSearch.textProperty().addListener((observable, oldValue, newValue) -> {
+            listSong.setPredicate(song -> {
+                if (newValue == null || newValue.isEmpty()) {
+                    return true;
+                }
+                String lowerCase = newValue.toLowerCase();
+                if (song.getTitle().toLowerCase().contains(lowerCase)) {
+                    return true;
+                } else if (song.getAuthor().toLowerCase().contains(lowerCase)) {
+                    return true;
+                } else if (song.getAlbum().toLowerCase().contains(lowerCase)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+        });
+
+        SortedList<Mp3Song> sortedList = new SortedList<>(listSong);
+        sortedList.comparatorProperty().bind(tableView.comparatorProperty());
+        tableView.setItems(sortedList);
     }
 
     /**
@@ -533,6 +613,8 @@ public class Controller implements Initializable {
             mp3Player = new Mp3Player();
             mp3Parser = new Mp3Parser();
             drawTable();
+
+            searchValueInput();
 
         } catch (FileNotFoundException fileNotFoundException) {
             fileNotFoundException.printStackTrace();

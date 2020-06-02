@@ -5,11 +5,13 @@ import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -17,9 +19,14 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.scene.input.MouseEvent;
 import javafx.util.Duration;
+import song.Mp3Parser;
+import song.Mp3Player;
+import song.Mp3Song;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,7 +37,8 @@ import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
 
 public class Controller implements Initializable {
-    MediaPlayer player;
+    Mp3Player mp3Player;
+    Mp3Parser mp3Parser;
 
     @FXML
     private Slider timeSlider;
@@ -111,110 +119,42 @@ public class Controller implements Initializable {
     private MediaView mediaView;
 
     @FXML
+    private TableView<Mp3Song> tableView;
+
+    @FXML
     public void openFile(ActionEvent event) throws FileNotFoundException {
-        if (player != null) {
-            btnPlay.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/play.jpg"))));
-            player.pause();
-            player.dispose();
-        }
         try {
-            System.out.println("Open file");
-            FileChooser chooser = new FileChooser();
-            File file = chooser.showOpenDialog(null);
+            FileChooser fc = new FileChooser();
+            fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Mp3", "*mp3"));
+            File file = fc.showOpenDialog(new Stage());
+            if (file != null) {
+                mp3Player.getMp3Collection().clear();
+                mp3Player.getMp3Collection().addSong(mp3Parser.createMp3Song(file));
+                mp3Player.loadSong(0);
+                configureTable();
+                configureSlideBar();
 
-            Media media = new Media(file.toURI().toURL().toString());
-            player = new MediaPlayer(media);
-            mediaView.setMediaPlayer(player);
-
+            }
             //set setSelected cho radio button normal
             rbNormalSpeed.setSelected(true);
-
-            //Set mặc định khi open file sẽ play music
-            player.play();
-            btnPlay.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/pause.jpg"))));
-
-            /**time slider and volume slider (set time hiển thị thời gian trên thanh slider
-             * và slider volume to nhỏ âm thanh)*/
-            player.setOnReady(() -> {
-                //when player gets ready (set value cho thanh time slider)
-                timeSlider.setMin(0);
-                timeSlider.setMax(player.getMedia().getDuration().toSeconds());
-//                System.out.println(player.getMedia().getDuration().toSeconds());
-                timeSlider.setValue(0);
-
-                //audio slider (set volume hiển thị trên thanh slider)
-                volumeSlider.setPrefWidth(100);
-                volumeSlider.setMaxWidth(Region.USE_PREF_SIZE);
-                volumeSlider.setMinWidth(30);
-                volumeSlider.setValue(50);
-                player.volumeProperty().bind(volumeSlider.valueProperty().divide(100));
-
-            });
-
-            /**listener on player (set chạy thanh slider theo thời gian của bài nhạc)*/
-            player.currentTimeProperty().addListener(new ChangeListener<Duration>() {
-                @Override
-                public void changed(ObservableValue<? extends Duration> observable, Duration oldValue, Duration newValue) {
-                    Duration dur = player.getCurrentTime();
-                    timeSlider.setValue(dur.toSeconds());
-
-                    //Set thời gian chạy của nhạc
-                    int value = (int) timeSlider.getValue();
-                    int hours = value / 3600;
-                    int minutes = (value - (hours * 3600)) / 60;
-                    int seconds = value - (hours * 3600) - (minutes * 60);
-
-//                    System.out.println(value);
-                    lbTimeSliderSeconds.setText(numberPad(String.valueOf(seconds), 2));
-                    lbTimeSliderMinutes.setText(numberPad(String.valueOf(minutes), 2));
-                    lbTimeSliderHours.setText(numberPad(String.valueOf(hours), 2));
-
-                    int maxValue = (int) timeSlider.getMax();
-                    int maxHours = maxValue / 3600;
-                    int maxMinutes = (maxValue - (maxHours * 3600)) / 60;
-                    int maxSeconds = maxValue - (maxHours * 3600) - (maxMinutes * 60);
-
-//                    System.out.println(maxValue);
-                    lbTimeSliderMaxSeconds.setText(numberPad(String.valueOf(maxSeconds), 2));
-                    lbTimeSliderMaxMinutes.setText(numberPad(String.valueOf(maxMinutes), 2));
-                    lbTimeSliderMaxHours.setText(numberPad(String.valueOf(maxHours), 2));
-                }
-            });
-
-            /**time slider (thay đổi hay tời thanh thời gian của bài nhạc)*/
-            timeSlider.valueProperty().addListener(new ChangeListener<Number>() {
-                @Override
-                public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                    if (timeSlider.isPressed()) {
-                        double value = timeSlider.getValue();
-                        player.seek(new Duration(value * 1000));
-                    }
-                }
-            });
-
-            /**set âm thanh slider audio của bài nhạc*/
-            volumeSlider.valueProperty().addListener(new ChangeListener<Number>() {
-                @Override
-                public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                    if (volumeSlider.isPressed()) {
-                        double value = volumeSlider.getValue();
-                        if(player != null){
-                            try{
-                                player.getStatus();
-                                double volume = value/100;
-                                player.setVolume(volume);
-                            }catch (Exception e){
-                                e.printStackTrace();
-                            }
-                        }
-
-                    }
-                }
-            });
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void openDir(ActionEvent event) throws FileNotFoundException {
+        //open dialog with filter
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        File dir = directoryChooser.showDialog(new Stage());
+        mp3Player.getMp3Collection().clear();
+        mp3Player.getMp3Collection().addSongs(mp3Parser.createMp3Songs(dir));
+        mp3Player.loadSong(0);
+        configureSlideBar();
+        configureTable();
+        //select folder
+        //save files to a new folder (async)
+        //display on tableview
     }
 
     /**Set length = 2 (vd: 01) cho tham số giây, phút và giờ nếu length=1*/
@@ -231,14 +171,14 @@ public class Controller implements Initializable {
     @FXML
     void playClick(ActionEvent event) {
         try {
-            MediaPlayer.Status status = player.getStatus();
+            MediaPlayer.Status status = mp3Player.getMediaPlayer().getStatus();
 
             if (status == MediaPlayer.Status.PLAYING) {
-                player.pause();
+                mp3Player.getMediaPlayer().pause();
                 btnPlay.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/play.jpg"))));
 //            btnPlay.setText("Play");
             } else {
-                player.play();
+                mp3Player.getMediaPlayer().play();
                 btnPlay.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/pause.jpg"))));
 //                btnPlay.setText("Pause");
             }
@@ -269,9 +209,9 @@ public class Controller implements Initializable {
      */
     @FXML
     void seekNext(ActionEvent event) {
-        double duration = player.getCurrentTime().toSeconds();
+        double duration = mp3Player.getMediaPlayer().getCurrentTime().toSeconds();
         duration += 10;
-        player.seek(new Duration(duration * 1000));
+        mp3Player.getMediaPlayer().seek(new Duration(duration * 1000));
     }
 
     /**
@@ -279,9 +219,9 @@ public class Controller implements Initializable {
      */
     @FXML
     void seekPrev(ActionEvent event) {
-        double duration = player.getCurrentTime().toSeconds();
+        double duration = mp3Player.getMediaPlayer().getCurrentTime().toSeconds();
         duration -= 10;
-        player.seek(new Duration(duration * 1000));
+        mp3Player.getMediaPlayer().seek(new Duration(duration * 1000));
     }
 
     /**
@@ -290,11 +230,11 @@ public class Controller implements Initializable {
     @FXML
     void audioClick(ActionEvent event) {
         try {
-            if(player.isMute()){
-                player.setMute(false);
+            if(mp3Player.getMediaPlayer().isMute()){
+                mp3Player.getMediaPlayer().setMute(false);
                 btnAudio.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/audio.png"))));
             }else {
-                player.setMute(true);
+                mp3Player.getMediaPlayer().setMute(true);
                 btnAudio.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/unaudio.png"))));
             }
 
@@ -312,15 +252,17 @@ public class Controller implements Initializable {
     void repeatClick(ActionEvent event) {
         try {
             if (checkRepeat){
-                btnRepeat.setBackground(new Background(new BackgroundFill(Color.ORANGE, CornerRadii.EMPTY, Insets.EMPTY)));
-                player.setCycleCount(MediaPlayer.INDEFINITE);
+                btnRepeat.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
+                mp3Player.getMediaPlayer().setCycleCount(MediaPlayer.INDEFINITE);
+
                 checkRepeat = !checkRepeat;
                 System.out.println("Repeat is on");
             }else
             {
+
                 btnRepeat.setBackground(new Background(new BackgroundFill(Color.rgb(216,216,216), CornerRadii.EMPTY, Insets.EMPTY)));
 //                btnRepeat.setBackground(null);
-                player.setCycleCount(1);
+                mp3Player.getMediaPlayer().setCycleCount(1);
                 checkRepeat =!checkRepeat;
                 System.out.println("Repeat is off");
             }
@@ -343,8 +285,8 @@ public class Controller implements Initializable {
     @FXML
     void stopClick(ActionEvent event) {
         try {
-            player.stop();
-            btnPlay.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/play.png"))));
+            mp3Player.getMediaPlayer().stop();
+            btnPlay.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/play.jpg"))));
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -370,9 +312,6 @@ public class Controller implements Initializable {
 
             if (result.get() == buttonTypeYes) {
                 System.exit(0);
-            } else {
-                player.stop();
-                btnPlay.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/play.jpg"))));
             }
 
         } catch (Exception e) {
@@ -389,11 +328,6 @@ public class Controller implements Initializable {
             Stage window = new Stage();
             StackPane layout = new StackPane();
 
-            //click about player sẽ dừng phát nhạc và chuyển icon về play
-            if (player != null) {
-                player.pause();
-                btnPlay.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/play.jpg"))));
-            }
 
             File fileLogo = new File("src/icons/logo.png");
             File fileAboutMp3 = new File("src/icons/codegyminfo1.png");
@@ -423,7 +357,7 @@ public class Controller implements Initializable {
         if (rbSlowSpeed.isSelected()){
             rbNormalSpeed.setSelected(false);
             rbFastSpeed.setSelected(false);
-            player.setRate(0.5);
+            mp3Player.getMediaPlayer().setRate(0.5);
         }
     }
 
@@ -432,7 +366,7 @@ public class Controller implements Initializable {
         if (rbNormalSpeed.isSelected()){
             rbSlowSpeed.setSelected(false);
             rbFastSpeed.setSelected(false);
-            player.setRate(1);
+            mp3Player.getMediaPlayer().setRate(1);
         }
     }
 
@@ -441,8 +375,107 @@ public class Controller implements Initializable {
         if (rbFastSpeed.isSelected()){
             rbSlowSpeed.setSelected(false);
             rbNormalSpeed.setSelected(false);
-            player.setRate(1.5);
+            mp3Player.getMediaPlayer().setRate(1.5);
         }
+    }
+
+
+    void configureSlideBar() {
+        mp3Player.getMediaPlayer().setOnReady(() -> {
+            //when player gets ready (set value cho thanh time slider)
+            timeSlider.setMin(0);
+            timeSlider.setMax(mp3Player.getMediaPlayer().getMedia().getDuration().toSeconds());
+//                System.out.println(player.getMedia().getDuration().toSeconds());
+            timeSlider.setValue(0);
+//audio slider (set volume hiển thị trên thanh slider)
+            volumeSlider.setPrefWidth(100);
+            volumeSlider.setMaxWidth(Region.USE_PREF_SIZE);
+            volumeSlider.setMinWidth(30);
+            volumeSlider.setValue(50);
+            mp3Player.getMediaPlayer().volumeProperty().bind(volumeSlider.valueProperty().divide(100));
+        });
+
+        /**listener on player (set chạy thanh slider theo thời gian của bài nhạc)*/
+        mp3Player.getMediaPlayer().currentTimeProperty().addListener(new ChangeListener<Duration>() {
+            @Override
+            public void changed(ObservableValue<? extends Duration> observable, Duration oldValue, Duration newValue) {
+                Duration dur = mp3Player.getMediaPlayer().getCurrentTime();
+                timeSlider.setValue(dur.toSeconds());
+
+                //Set thời gian chạy của nhạc
+                int value = (int) timeSlider.getValue();
+                int hours = value / 3600;
+                int minutes = (value - (hours * 3600)) / 60;
+                int seconds = value - (hours * 3600) - (minutes * 60);
+
+                //                    System.out.println(value);
+                lbTimeSliderSeconds.setText(numberPad(String.valueOf(seconds), 2));
+                lbTimeSliderMinutes.setText(numberPad(String.valueOf(minutes), 2));
+                lbTimeSliderHours.setText(numberPad(String.valueOf(hours), 2));
+
+                int maxValue = (int) timeSlider.getMax();
+                int maxHours = maxValue / 3600;
+                int maxMinutes = (maxValue - (maxHours * 3600)) / 60;
+                int maxSeconds = maxValue - (maxHours * 3600) - (maxMinutes * 60);
+
+                //                    System.out.println(maxValue);
+                lbTimeSliderMaxSeconds.setText(numberPad(String.valueOf(maxSeconds), 2));
+                lbTimeSliderMaxMinutes.setText(numberPad(String.valueOf(maxMinutes), 2));
+                lbTimeSliderMaxHours.setText(numberPad(String.valueOf(maxHours), 2));
+            }
+        });
+
+        /**time slider (thay đổi hay tời thanh thời gian của bài nhạc)*/
+        timeSlider.valueProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                if (timeSlider.isPressed()) {
+                    double value = timeSlider.getValue();
+                    mp3Player.getMediaPlayer().seek(new Duration(value * 1000));
+                }
+            }
+        });
+        /**set âm thanh slider audio của bài nhạc*/
+        volumeSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (volumeSlider.isPressed()) {
+                double value = volumeSlider.getValue();
+                mp3Player.getMediaPlayer().setVolume(value / 100);
+            }
+        });
+
+    }
+    void configureTable() {
+        tableView.setItems(mp3Player.getMp3Collection().getSongList());
+        tableView.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if (event.getClickCount() == 2) {
+                    try {
+                        mp3Player.loadSong(tableView.getSelectionModel().getSelectedIndex());
+                        configureSlideBar();
+                        btnPlay.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/play.jpg"))));
+                    } catch (FileNotFoundException exception) {
+                        System.out.println("File not found");
+                    }
+                }
+
+            }
+        });
+        tableView.getSelectionModel().select(0);
+    }
+    void drawTable() {
+        TableColumn<Mp3Song, String> titleColumn = new TableColumn<Mp3Song, String>("Title");
+        titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
+
+        TableColumn<Mp3Song, String> authorColumn = new TableColumn<Mp3Song, String>("Artist");
+        authorColumn.setCellValueFactory(new PropertyValueFactory<>("author"));
+
+        TableColumn<Mp3Song, String> albumColumn = new TableColumn<Mp3Song, String>("Album");
+        albumColumn.setCellValueFactory(new PropertyValueFactory<>("album"));
+
+        tableView.getColumns().add(titleColumn);
+        tableView.getColumns().add(authorColumn);
+        tableView.getColumns().add(albumColumn);
     }
 
     /**
@@ -464,6 +497,9 @@ public class Controller implements Initializable {
             miSave.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/save.png"))));
             miExit.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/exit.png"))));
             miAbout.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/about.png"))));
+            mp3Player = new Mp3Player();
+            mp3Parser = new Mp3Parser();
+            drawTable();
 
         } catch (FileNotFoundException fileNotFoundException) {
             fileNotFoundException.printStackTrace();

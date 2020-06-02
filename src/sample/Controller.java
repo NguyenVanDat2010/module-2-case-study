@@ -401,6 +401,27 @@ public class Controller implements Initializable {
             public void changed(ObservableValue<? extends Duration> observable, Duration oldValue, Duration newValue) {
                 Duration dur = mp3Player.getMediaPlayer().getCurrentTime();
                 timeSlider.setValue(dur.toSeconds());
+
+                //Set thời gian chạy của nhạc
+                int value = (int) timeSlider.getValue();
+                int hours = value / 3600;
+                int minutes = (value - (hours * 3600)) / 60;
+                int seconds = value - (hours * 3600) - (minutes * 60);
+
+                //                    System.out.println(value);
+                lbTimeSliderSeconds.setText(numberPad(String.valueOf(seconds), 2));
+                lbTimeSliderMinutes.setText(numberPad(String.valueOf(minutes), 2));
+                lbTimeSliderHours.setText(numberPad(String.valueOf(hours), 2));
+
+                int maxValue = (int) timeSlider.getMax();
+                int maxHours = maxValue / 3600;
+                int maxMinutes = (maxValue - (maxHours * 3600)) / 60;
+                int maxSeconds = maxValue - (maxHours * 3600) - (maxMinutes * 60);
+
+                //                    System.out.println(maxValue);
+                lbTimeSliderMaxSeconds.setText(numberPad(String.valueOf(maxSeconds), 2));
+                lbTimeSliderMaxMinutes.setText(numberPad(String.valueOf(maxMinutes), 2));
+                lbTimeSliderMaxHours.setText(numberPad(String.valueOf(maxHours), 2));
             }
         });
 

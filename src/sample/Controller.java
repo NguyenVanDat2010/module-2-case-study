@@ -455,7 +455,6 @@ public class Controller implements Initializable {
                         System.out.println("File not found");
                     }
                 }
-
             }
         });
         tableView.getSelectionModel().select(0);
@@ -487,7 +486,6 @@ public class Controller implements Initializable {
     /**Thay đổi background cho image view */
     @FXML
     void miChangeBackground(ActionEvent event) {
-
         if (backgroundValue == 1) {
             imageView.setImage(getBackgroundStr(backgroundValue));
             backgroundValue = 2;

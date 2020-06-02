@@ -198,7 +198,16 @@ public class Controller implements Initializable {
                 public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
                     if (volumeSlider.isPressed()) {
                         double value = volumeSlider.getValue();
-                        player.setVolume(value / 100);
+                        if(player != null){
+                            try{
+                                player.getStatus();
+                                double volume = value/100;
+                                player.setVolume(volume);
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+                        }
+
                     }
                 }
             });

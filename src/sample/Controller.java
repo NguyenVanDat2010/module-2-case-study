@@ -152,9 +152,7 @@ public class Controller implements Initializable {
         mp3Player.loadSong(0);
         configureSlideBar();
         configureTable();
-        //select folder
-        //save files to a new folder (async)
-        //display on tableview
+
     }
 
     /**Set length = 2 (vd: 01) cho tham số giây, phút và giờ nếu length=1*/
@@ -193,7 +191,11 @@ public class Controller implements Initializable {
      */
     @FXML
     void prevClick(ActionEvent event) {
-
+        if (tableView.getSelectionModel().getSelectedIndex() > 0) {
+            tableView.getSelectionModel().select(tableView.getSelectionModel().getSelectedIndex() - 1);
+            mp3Player.loadSong(tableView.getSelectionModel().getSelectedIndex());
+            btnPlay.fire();
+        }
     }
 
     /**
@@ -201,7 +203,11 @@ public class Controller implements Initializable {
      */
     @FXML
     void nextClick(ActionEvent event) {
-
+        if (tableView.getSelectionModel().getSelectedIndex() < mp3Player.getMp3Collection().getSongList().size()) {
+            tableView.getSelectionModel().select(tableView.getSelectionModel().getSelectedIndex() + 1);
+            mp3Player.loadSong(tableView.getSelectionModel().getSelectedIndex());
+            btnPlay.fire();
+        }
     }
 
     /**

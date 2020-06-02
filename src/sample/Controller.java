@@ -1,7 +1,5 @@
 package sample;
 
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -15,9 +13,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
-import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -34,11 +30,14 @@ import java.io.FileNotFoundException;
 import java.net.URL;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.concurrent.TimeUnit;
 
 public class Controller implements Initializable {
+    private boolean checkRepeat = true;
+    private int backgroundValue =1;
+
     Mp3Player mp3Player;
     Mp3Parser mp3Parser;
+
 
     @FXML
     private Slider timeSlider;
@@ -95,6 +94,9 @@ public class Controller implements Initializable {
     private MenuItem miOpen;
 
     @FXML
+    private MenuItem miDir;
+
+    @FXML
     private MenuItem miSave;
 
     @FXML
@@ -116,10 +118,10 @@ public class Controller implements Initializable {
     private MenuItem miAbout;
 
     @FXML
-    private MediaView mediaView;
+    private TableView<Mp3Song> tableView;
 
     @FXML
-    private TableView<Mp3Song> tableView;
+    private ImageView imageView;
 
     @FXML
     public void openFile(ActionEvent event) throws FileNotFoundException {
@@ -152,6 +154,10 @@ public class Controller implements Initializable {
         mp3Player.loadSong(0);
         configureSlideBar();
         configureTable();
+        rbNormalSpeed.setSelected(true);
+        //select folder
+        //save files to a new folder (async)
+        //display on tableview
 
     }
 
@@ -252,8 +258,6 @@ public class Controller implements Initializable {
     /**
      * set sự kiện click cho nút button repeat, lặp lại 1 bài hát đang playing
      */
-
-    private boolean checkRepeat = true;
     @FXML
     void repeatClick(ActionEvent event) {
         try {
@@ -355,10 +359,6 @@ public class Controller implements Initializable {
     }
 
     @FXML
-    void menuSpeedClick(ActionEvent event) {
-    }
-
-    @FXML
     void slowSpeedClick(ActionEvent event) {
         if (rbSlowSpeed.isSelected()){
             rbNormalSpeed.setSelected(false);
@@ -391,9 +391,9 @@ public class Controller implements Initializable {
             //when player gets ready (set value cho thanh time slider)
             timeSlider.setMin(0);
             timeSlider.setMax(mp3Player.getMediaPlayer().getMedia().getDuration().toSeconds());
-//                System.out.println(player.getMedia().getDuration().toSeconds());
+//          System.out.println(player.getMedia().getDuration().toSeconds());
             timeSlider.setValue(0);
-//audio slider (set volume hiển thị trên thanh slider)
+            //audio slider (set volume hiển thị trên thanh slider)
             volumeSlider.setPrefWidth(100);
             volumeSlider.setMaxWidth(Region.USE_PREF_SIZE);
             volumeSlider.setMinWidth(30);
@@ -484,6 +484,34 @@ public class Controller implements Initializable {
         tableView.getColumns().add(albumColumn);
     }
 
+    /**get chuỗi cho background */
+    public Image getBackgroundStr(int value) {
+        String a = "src/icons/background".concat(String.valueOf(value));
+        String b = a.concat(".jpg");
+        File file = new File(b);
+        Image image = new Image(file.toURI().toString());
+        return image;
+    }
+
+    /**Thay đổi background cho image view */
+    @FXML
+    void miChangeBackground(ActionEvent event) {
+
+        if (backgroundValue == 1) {
+            imageView.setImage(getBackgroundStr(backgroundValue));
+            backgroundValue = 2;
+        } else if (backgroundValue == 2) {
+            imageView.setImage(getBackgroundStr(backgroundValue));
+            backgroundValue = 3;
+        } else if (backgroundValue == 3) {
+            imageView.setImage(getBackgroundStr(backgroundValue));
+            backgroundValue = 4;
+        } else if (backgroundValue == 4) {
+            imageView.setImage(getBackgroundStr(backgroundValue));
+            backgroundValue = 1;
+        }
+    }
+
     /**
      * Gán icon cho các button, menuBar,...
      */
@@ -503,6 +531,7 @@ public class Controller implements Initializable {
             miSave.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/save.png"))));
             miExit.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/exit.png"))));
             miAbout.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/about.png"))));
+            miDir.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/openplaylist.png"))));
             mp3Player = new Mp3Player();
             mp3Parser = new Mp3Parser();
             drawTable();

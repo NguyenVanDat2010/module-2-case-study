@@ -4,7 +4,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 /**
- * Created by Adrian on 2017-04-21.
+ * Mp3Song
  */
 public class Mp3Song {
     private StringProperty title;

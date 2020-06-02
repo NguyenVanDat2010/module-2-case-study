@@ -9,7 +9,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Created by Adrian on 2017-04-21.
+ * Mp3Parser
  */
 public class Mp3Parser {
     public Mp3Song createMp3Song(File file) {

@@ -4,7 +4,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 /**
- * Created by Adrian on 2017-04-21.
+ * Mp3Collection
  */
 public class Mp3Collection {
     private ObservableList<Mp3Song> songList;

@@ -7,7 +7,7 @@ import javafx.scene.media.MediaPlayer.Status;
 import java.io.File;
 
 /**
- * Created by Adrian on 2017-04-21.
+ * Mp3Player
  */
 public class Mp3Player {
 

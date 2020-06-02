@@ -7,6 +7,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -15,6 +16,7 @@ import javafx.scene.layout.*;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -260,17 +262,25 @@ public class Controller implements Initializable {
     /**
      * set sự kiện click cho nút button repeat, lặp lại 1 bài hát đang playing
      */
-    private boolean checkRepeat =false;
+
+    private boolean checkRepeat = true;
     @FXML
-    void repeatClick(ActionEvent event) throws FileNotFoundException {
-        if (checkRepeat){
-            btnRepeat.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/repeat.png"))));
-            player.setCycleCount(MediaPlayer.INDEFINITE);
-            checkRepeat = !checkRepeat;
-        }else {
-            btnRepeat.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/unRepeat.png"))));
-            player.setCycleCount(1);
-            checkRepeat = !checkRepeat;
+    void repeatClick(ActionEvent event) {
+        try {
+            if (checkRepeat){
+                btnRepeat.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
+                player.setCycleCount(MediaPlayer.INDEFINITE);
+                checkRepeat = !checkRepeat;
+                System.out.println("Repeat is on");
+            }else
+            {
+                btnRepeat.setBackground(new Background(new BackgroundFill(null, CornerRadii.EMPTY, Insets.EMPTY)));
+                player.setCycleCount(1);
+                checkRepeat =!checkRepeat;
+                System.out.println("Repeat is off");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
 
@@ -288,9 +298,8 @@ public class Controller implements Initializable {
     @FXML
     void stopClick(ActionEvent event) {
         try {
-            player.seek(Duration.ZERO);
-            player.pause();
-            btnPlay.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/play.jpg"))));
+            player.stop();
+            btnPlay.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/play.png"))));
 
         } catch (Exception e) {
             e.printStackTrace();

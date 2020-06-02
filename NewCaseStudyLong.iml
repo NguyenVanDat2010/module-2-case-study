@@ -7,5 +7,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="jid3lib-0.5.4" level="project" />
+    <orderEntry type="library" name="jid3lib-0.5.41" level="project" />
   </component>
 </module>

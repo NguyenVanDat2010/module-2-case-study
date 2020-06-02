@@ -17,7 +17,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.media.MediaView?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="510.0" prefWidth="850.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="510.0" prefWidth="850.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
     <children>
         <BorderPane layoutX="371.0" layoutY="1.0" prefHeight="405.0" prefWidth="741.0" AnchorPane.bottomAnchor="29.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
             <bottom>
@@ -33,7 +33,7 @@
                         </Slider>
                         <HBox prefHeight="100.0" prefWidth="200.0">
                             <children>
-                        <Label text="Time : " />
+                        <Label text="   " />
                                 <Label fx:id="lbTimeSliderHours" text="00" />
                                 <Label text=":" />
                                 <Label fx:id="lbTimeSliderMinutes" text="00" />

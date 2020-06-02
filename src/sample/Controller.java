@@ -31,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Controller implements Initializable {
     MediaPlayer player;
+    private boolean checkRepeat = true;
 
     @FXML
     private Slider timeSlider;
@@ -297,8 +298,6 @@ public class Controller implements Initializable {
     /**
      * set sự kiện click cho nút button repeat, lặp lại 1 bài hát đang playing
      */
-
-    private boolean checkRepeat = true;
     @FXML
     void repeatClick(ActionEvent event) {
         try {
@@ -403,10 +402,6 @@ public class Controller implements Initializable {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    @FXML
-    void menuSpeedClick(ActionEvent event) {
     }
 
     @FXML

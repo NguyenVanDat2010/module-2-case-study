@@ -25,12 +25,22 @@ import java.io.FileNotFoundException;
 import java.net.URL;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.concurrent.TimeUnit;
 
 public class Controller implements Initializable {
     MediaPlayer player;
 
     @FXML
     private Slider timeSlider;
+
+    @FXML
+    private Label lbTimeSliderHours;
+
+    @FXML
+    private Label lbTimeSliderMinutes;
+
+    @FXML
+    private Label lbTimeSliderSeconds;
 
     @FXML
     private Button btnShuffle;
@@ -60,7 +70,7 @@ public class Controller implements Initializable {
     private Button btnAudio;
 
     @FXML
-    private Slider audioSlider;
+    private Slider volumeSlider;
 
     @FXML
     private MenuItem miOpen;
@@ -72,7 +82,19 @@ public class Controller implements Initializable {
     private MenuItem miExit;
 
     @FXML
-    private MenuItem miSpeed;
+    private Menu miSpeed;
+
+    @FXML
+    private RadioButton rbSlowSpeed;
+
+    @FXML
+    private RadioButton rbNormalSpeed;
+
+    @FXML
+    private RadioButton rbFastSpeed;
+
+    @FXML
+    private MenuItem miBackground;
 
     @FXML
     private MenuItem miAbout;
@@ -88,7 +110,7 @@ public class Controller implements Initializable {
             player.dispose();
         }
         try {
-            System.out.println("open file");
+            System.out.println("Open file");
             FileChooser chooser = new FileChooser();
             File file = chooser.showOpenDialog(null);
 
@@ -96,48 +118,59 @@ public class Controller implements Initializable {
             player = new MediaPlayer(media);
             mediaView.setMediaPlayer(player);
 
-            //Set mặc định khi open file sẽ play mucsic
+            //set setSelected cho radio button normal
+            rbNormalSpeed.setSelected(true);
+
+            //Set mặc định khi open file sẽ play music
             player.play();
             btnPlay.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/pause.jpg"))));
 
-            //time slider (set time hiển thị thời gian trên thanh slider)
+            /**time slider and volume slider (set time hiển thị thời gian trên thanh slider
+             * và slider volume to nhỏ âm thanh)*/
             player.setOnReady(() -> {
-                //when player gets ready
+                //when player gets ready (set value cho thanh time slider)
                 timeSlider.setMin(0);
-                timeSlider.setMax(player.getMedia().getDuration().toMinutes());
+                timeSlider.setMax(player.getMedia().getDuration().toSeconds());
 //                System.out.println(player.getMedia().getDuration().toSeconds());
                 timeSlider.setValue(0);
-                player.setMute(false);
+
+                //audio slider (set volume hiển thị trên thanh slider)
+                volumeSlider.setPrefWidth(100);
+                volumeSlider.setMaxWidth(Region.USE_PREF_SIZE);
+                volumeSlider.setMinWidth(30);
+                volumeSlider.setValue(50);
+                player.volumeProperty().bind(volumeSlider.valueProperty().divide(100));
 
             });
 
-            //listener on player (set chạy thanh slider theo thời gian của bài nhạc)
+            /**listener on player (set chạy thanh slider theo thời gian của bài nhạc)*/
             player.currentTimeProperty().addListener(new ChangeListener<Duration>() {
                 @Override
                 public void changed(ObservableValue<? extends Duration> observable, Duration oldValue, Duration newValue) {
-
                     Duration dur = player.getCurrentTime();
-
-                    timeSlider.setValue(dur.toMinutes());
+                    timeSlider.setValue(dur.toSeconds());
                 }
             });
 
-            //time slider (thay đổi hay tời thanh thời gian của bài nhạc)
+            /**time slider (thay đổi hay tời thanh thời gian của bài nhạc)*/
             timeSlider.valueProperty().addListener(new ChangeListener<Number>() {
                 @Override
                 public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
                     if (timeSlider.isPressed()) {
                         double value = timeSlider.getValue();
-                        player.seek(new Duration(value *60* 1000));
+                        player.seek(new Duration(value * 1000));
                     }
                 }
             });
-            // slider volume
-            audioSlider.setValue(player.getVolume()*100);
-            audioSlider.valueProperty().addListener(new InvalidationListener() {
+
+            /**set âm thanh slider audio của bài nhạc*/
+            volumeSlider.valueProperty().addListener(new ChangeListener<Number>() {
                 @Override
-                public void invalidated(Observable observable) {
-                    player.setVolume(audioSlider.getValue()/100);
+                public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                    if (volumeSlider.isPressed()) {
+                        double value = volumeSlider.getValue();
+                        player.setVolume(value / 100);
+                    }
                 }
             });
 
@@ -146,7 +179,9 @@ public class Controller implements Initializable {
         }
     }
 
-    //sự kiện cho nút button play
+    /**
+     * set sự kiện click cho nút button play
+     */
     @FXML
     void playClick(ActionEvent event) {
         try {
@@ -167,16 +202,25 @@ public class Controller implements Initializable {
         }
     }
 
+    /**
+     * set sự kiện click cho nút button previous lùi bài hát về trước
+     */
     @FXML
-    void prevClick(ActionEvent event){
+    void prevClick(ActionEvent event) {
 
     }
 
+    /**
+     * set sự kiện click cho nút button next bài hát kế tiếp
+     */
     @FXML
-    void nextClick(ActionEvent event){
+    void nextClick(ActionEvent event) {
 
     }
 
+    /**
+     * set sự kiện click cho nút button seek next tời bài hát về sau 10s
+     */
     @FXML
     void seekNext(ActionEvent event) {
         double duration = player.getCurrentTime().toSeconds();
@@ -184,6 +228,9 @@ public class Controller implements Initializable {
         player.seek(new Duration(duration * 1000));
     }
 
+    /**
+     * set sự kiện click cho nút button seek previous tời bài hát về trước 10s
+     */
     @FXML
     void seekPrev(ActionEvent event) {
         double duration = player.getCurrentTime().toSeconds();
@@ -191,6 +238,9 @@ public class Controller implements Initializable {
         player.seek(new Duration(duration * 1000));
     }
 
+    /**
+     * Set button mute click tắt bật âm thanh
+     */
     @FXML
     void audioClick(ActionEvent event) {
         try {
@@ -207,17 +257,25 @@ public class Controller implements Initializable {
         }
     }
 
+    /**
+     * set sự kiện click cho nút button repeat, lặp lại 1 bài hát đang playing
+     */
     @FXML
     void repeatClick(ActionEvent event) {
 
     }
 
+    /**
+     * set sự kiện click cho nút button shuffle, chọn bài hát kế tiếp ngẫu nhiên
+     */
     @FXML
     void shuffleClick(ActionEvent event) {
 
     }
 
-    //set action cho note stop button
+    /**
+     * set sự kiện click cho nút button stop, dừng trình phát nếu đang playing
+     */
     @FXML
     void stopClick(ActionEvent event) {
         try {
@@ -230,7 +288,9 @@ public class Controller implements Initializable {
         }
     }
 
-    //set action cho note exit trong menu button
+    /**
+     * set sự kiện click cho nút menuBar exit, đóng trình phát
+     */
     @FXML
     void exitClick(ActionEvent event) {
         try {
@@ -257,6 +317,9 @@ public class Controller implements Initializable {
         }
     }
 
+    /**
+     * set sự kiện click cho nút menuBar about, hiển thị thông tin trình phát nhạc
+     */
     @FXML
     void aboutClick(ActionEvent event) {
         try {
@@ -264,8 +327,10 @@ public class Controller implements Initializable {
             StackPane layout = new StackPane();
 
             //click about player sẽ dừng phát nhạc và chuyển icon về play
-            player.pause();
-            btnPlay.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/play.jpg"))));
+            if (player != null) {
+                player.pause();
+                btnPlay.setGraphic(new ImageView(new Image(new FileInputStream("src/icons/play.jpg"))));
+            }
 
             File fileLogo = new File("src/icons/logo.png");
             File fileAboutMp3 = new File("src/icons/codegyminfo1.png");
@@ -287,10 +352,39 @@ public class Controller implements Initializable {
     }
 
     @FXML
-    void speedClick(ActionEvent event) {
+    void menuSpeedClick(ActionEvent event) {
     }
 
-    //Gán icon cho các button
+    @FXML
+    void slowSpeedClick(ActionEvent event) {
+        if (rbSlowSpeed.isSelected()){
+            rbNormalSpeed.setSelected(false);
+            rbFastSpeed.setSelected(false);
+            player.setRate(0.5);
+        }
+    }
+
+    @FXML
+    void normalSpeedClick(ActionEvent event) {
+        if (rbNormalSpeed.isSelected()){
+            rbSlowSpeed.setSelected(false);
+            rbFastSpeed.setSelected(false);
+            player.setRate(1);
+        }
+    }
+
+    @FXML
+    void fastSpeedClick(ActionEvent event) {
+        if (rbFastSpeed.isSelected()){
+            rbSlowSpeed.setSelected(false);
+            rbNormalSpeed.setSelected(false);
+            player.setRate(1.5);
+        }
+    }
+
+    /**
+     * Gán icon cho các button, menuBar,...
+     */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         try {

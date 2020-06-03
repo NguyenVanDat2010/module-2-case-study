@@ -1,4 +1,4 @@
-package song;
+package model;
 
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;

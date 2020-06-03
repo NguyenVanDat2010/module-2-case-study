@@ -1,8 +1,7 @@
-package sample;
+package controller;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
@@ -23,16 +22,17 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Duration;
-import song.Mp3Collection;
-import song.Mp3Parser;
-import song.Mp3Player;
-import song.Mp3Song;
+import model.Mp3Collection;
+import model.Mp3Parser;
+import model.Mp3Player;
+import model.Mp3Song;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.URL;
 import java.util.Optional;
+import java.util.Random;
 import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
@@ -220,17 +220,11 @@ public class Controller implements Initializable {
         }
     }
 
-    void nextSong() {
-        if (tableView.getSelectionModel().getSelectedIndex() < mp3Player.getMp3Collection().getSongList().size()) {
-            tableView.getSelectionModel().select(tableView.getSelectionModel().getSelectedIndex() + 1);
-            mp3Player.loadSong(tableView.getSelectionModel().getSelectedIndex());
-            changSpeed();
-            configureSlideBar();
-            btnPlay.fire();
-        }
-    }
-
-    void prevSong() {
+    /**
+     * set sự kiện click cho nút button previous lùi bài hát về trước
+     */
+    @FXML
+    void prevClick(ActionEvent event) {
         if (tableView.getSelectionModel().getSelectedIndex() > 0) {
             tableView.getSelectionModel().select(tableView.getSelectionModel().getSelectedIndex() - 1);
             mp3Player.loadSong(tableView.getSelectionModel().getSelectedIndex());
@@ -240,21 +234,18 @@ public class Controller implements Initializable {
         }
     }
 
-
-    /**
-     * set sự kiện click cho nút button previous lùi bài hát về trước
-     */
-    @FXML
-    void prevClick(ActionEvent event) {
-        prevSong();
-    }
-
     /**
      * set sự kiện click cho nút button next bài hát kế tiếp
      */
     @FXML
     void nextClick(ActionEvent event) {
-        nextSong();
+        if (tableView.getSelectionModel().getSelectedIndex() < mp3Player.getMp3Collection().getSongList().size()) {
+            tableView.getSelectionModel().select(tableView.getSelectionModel().getSelectedIndex() + 1);
+            mp3Player.loadSong(tableView.getSelectionModel().getSelectedIndex());
+            changSpeed();
+            configureSlideBar();
+            btnPlay.fire();
+        }
     }
 
     /**
@@ -326,7 +317,10 @@ public class Controller implements Initializable {
      */
     @FXML
     void shuffleClick(ActionEvent event) {
-
+        Random random = new Random();
+        tableView.getSelectionModel().select(random.nextInt(mp3Player.getMp3Collection().getSongList().size() + 1));
+        mp3Player.loadSong(tableView.getSelectionModel().getSelectedIndex());
+        btnPlay.fire();
     }
 
     /**
@@ -470,7 +464,7 @@ public class Controller implements Initializable {
                 lbTimeSliderMaxHours.setText(numberPad(String.valueOf(maxHours), 2));
 
                 if (value == maxValue) {
-                    nextSong();
+                    btnNext.fire();
                 }
             }
         });

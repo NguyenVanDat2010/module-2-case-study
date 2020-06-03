@@ -1,4 +1,4 @@
-package sample;
+package main;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -17,7 +17,7 @@ public class Main extends Application {
         File file=new File("src/icons/logo.png");
         Image image=new Image(file.toURI().toString());
 
-        Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("../static/sample.fxml"));
 
         primaryStage.setTitle("Mp3 Player");
         primaryStage.getIcons().add(image);
